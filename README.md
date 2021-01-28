@@ -10,8 +10,12 @@ Prerequisites: Get git and your ssh key setup.
 3. `cd ./PSOkta/`
 1. Createa `Config.psd1` and add the HashTable `@{token='nnnn'}`
 4. `Import-Module ./PSOkta/`
-5. `Get-Command -Module PSOkta`
-6. `Get-Command RequestOkta` 
+
+Now you have the module in your powershell session and you can use the module and its functions like any other PowerShell module.
+
+To take a peek at the module and functions use the commands below.
+1. `Get-Command -Module PSOkta`
+1. `Get-Command RequestOkta` 
 
 ## Contribute
 This module is developed and maintained by the Information Security team, contributors welcomes.
