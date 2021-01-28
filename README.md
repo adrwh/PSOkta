@@ -25,14 +25,21 @@ To take a peek at the module and functions use the commands below.
 * Public functions must be advanced functions (https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_advanced_parameters?view=powershell-7.1)
 * Public functions must include at least a Synopsis and one Example comment block, placed inside, at the very top of the function definition.
 
-```ps
+```
+function Get-SomethingCool {
 <#
  .Synopsis
 
  .Example
 #>
+
+param()
+...
+}
 ```
 
 ## Contribute
-This module is developed and maintained by the Information Security team, contributors welcomes.
+This module is developed and maintained by the Information Security team, contributors welcome.
+
+If you would like to contribute, get in touch.
 
