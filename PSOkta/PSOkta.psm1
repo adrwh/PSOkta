@@ -51,7 +51,7 @@ $headers = @{
 $uri = "https://hillsong-admin.okta.com/api/{0}/{1}{2}" -f $Version, $Endpoint, $QueryString #?filter=status eq "ACTIVE"'
 
 # make the API request using -FollowRelLink for automatic paging
-$response = Invoke-RestMethod -SslProtocol "Tls12" -Headers $headers -Uri $uri -FollowRelLink
+$response = Invoke-RestMethod -Headers $headers -Uri $uri -FollowRelLink
 
 # Unroll the pages
 $data = $response| Foreach-object {$_}
