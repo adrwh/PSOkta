@@ -4,6 +4,17 @@
 # Import Config
 $config = Import-PowerShellDataFile -Path ./Config.psd1
 
+function getHeaders {
+  
+  # Setup Auth Header
+  return @{
+    Authorization  = "SSWS {0}" -f $config.token
+    Accept         = "application/json"
+    "Content-Type" = "application/json"
+  }
+}
+
+$Global:headers = getHeaders
 
 function Get-Okta {
   <#
@@ -29,37 +40,24 @@ function Get-Okta {
     $Endpoint,
     [Parameter()]
     [String]
-    $Query,
-    [Parameter()]
-    [Switch]
     $Q,
     [Parameter()]
-    [Switch]
+    [String]
     $Filter,
     [Parameter()]
-    [Switch]
+    [String]
     $Search
   )
 
   begin {
     # Handle the parameters
-    $QueryString = $Query
-    if ($Q) { $QueryString = -join ("?q=", $Query) }
-    if ($Filter) { $QueryString = -join ("?filter=", $Query) }
-    if ($Search) { $QueryString = -join ("?search=", $Query) }
-
-
-    # Setup Auth Header
-    $headers = @{
-      Authorization  = "SSWS {0}" -f $config.token
-      Accept         = "application/json"
-      "Content-Type" = "application/json"
-    }
+    if ($Q) { $QueryString = -join ("?q=", $Q) }
+    if ($Filter) { $QueryString = -join ("?filter=", $Filter) }
+    if ($Search) { $QueryString = -join ("?search=", $Search) }
 
     # API Resource Endpoint
-    $uri = "https://hillsong-admin.okta.com/api/{0}/{1}{2}" -f $Version, $Endpoint, $QueryString #?filter=status eq "ACTIVE"'
+    $uri = -join(($config.base_uri),("/{0}/{1}{2}" -f $Version, $Endpoint, $QueryString)) #?filter=status eq "ACTIVE"'
     Write-Verbose "GET [$uri]"
-  
 
     try {
       $response = Invoke-RestMethod -Headers $headers -Uri $uri -FollowRelLink -Verbose:$false
