@@ -2,3 +2,4 @@ Config.psd1
 scratch_pad.ps1
 .vscode
 .DS_Store
+.token
