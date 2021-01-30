@@ -4,11 +4,30 @@
 # Import Config
 $config = Import-PowerShellDataFile -Path ./Config.psd1
 
+function getToken {
+  Read-Host -AsSecureString -Prompt "Please provide your Okta API Token" | Export-Clixml .token
+  Write-Verbose -Verbose "Encrypting token"
+}
+
+if (-not (Test-Path -Path $config.token_file)){
+  Write-Warning -Verbose "Hold on, you don't have an API Token, standby";
+  getToken
+  if (-not (Test-Path -Path $config.token_file)) {
+    Write-Warning -Verbose "Still no Token file, get help, bailing."
+    Exit
+  }
+}
+
 function getHeaders {
-  
+  try {
+    $token = Import-Clixml $config.token_file | ConvertFrom-SecureString -AsPlainText
+  }
+  catch {
+    
+  }
   # Setup Auth Header
   return @{
-    Authorization  = "SSWS {0}" -f $config.token
+    Authorization  = "SSWS {0}" -f $token
     Accept         = "application/json"
     "Content-Type" = "application/json"
   }
@@ -23,11 +42,11 @@ function Get-Okta {
 
  .Example
    # Query the user profile.
-   RequestOkta -Version "v1" -Endpoint "users" -QueryString "username@hillsong.com" 
+   RequestOkta -Version "v1" -Endpoint "users" -Q "username@hillsong.com" 
 
  .Example
    # Get Okta ACTIVE users. Note: The -Version paramater defaults to "v1" and can be ommitted.
-   RequestOkta -Endpoint "users" -QueryString "status = 'ACTIVE'"
+   RequestOkta -Endpoint "users" -Filter "status = 'ACTIVE'"
 
 #>
   [CmdletBinding()]
