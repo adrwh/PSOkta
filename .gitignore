@@ -1,4 +1,8 @@
 Config.psd1
-scratch_pad.ps1
+scratch
 .vscode
 .DS_Store
+.token
+ParameterSet.ps1
+DynamicParameter.ps1
+.gitignore
