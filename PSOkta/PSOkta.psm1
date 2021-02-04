@@ -1,12 +1,39 @@
 # Setup session TLS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Import Config
-$config = Import-PowerShellDataFile -Path ./Config.psd1
-
 function _getToken {
   Read-Host -AsSecureString -Prompt "Please provide your Okta API Token" | Export-Clixml .token
   Write-Verbose -Verbose "Encrypting token"
+}
+function _getDomain {
+  Read-Host -Prompt "Please provide your Okta Domain" 
+}
+
+if (-not(Test-Path -Path ./Config.psd1)) {
+  try {
+    $ConfigFile = New-Item -ItemType File -Path ./Config.psd1
+  }
+  catch {
+    
+  }
+  try {
+    $domain = _getDomain
+    $base_uri = "https://{0}-admin.okta.com/api/" -f $domain
+  }
+  catch { 
+  }
+  try {
+    @"
+    @{
+      token_file = '.token'
+      base_uri = $base_uri
+    }
+"@ | Add-Content -Path $ConfigFile
+
+  }
+  catch {
+    
+  }
 }
 
 if (-not (Test-Path -Path $config.token_file)) {
@@ -17,6 +44,10 @@ if (-not (Test-Path -Path $config.token_file)) {
     Exit
   }
 }
+
+# Import Config
+$config = Import-PowerShellDataFile -Path ./Config.psd1
+
 
 function _getHeaders {
   try {
