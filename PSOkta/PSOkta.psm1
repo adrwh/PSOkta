@@ -9,32 +9,39 @@ function _getDomain {
   Read-Host -Prompt "Please provide your Okta Domain" 
 }
 
-if (-not(Test-Path -Path ./Config.psd1)) {
-  try {
-    $ConfigFile = New-Item -ItemType File -Path ./Config.psd1
-  }
-  catch {
-    
-  }
-  try {
-    $domain = _getDomain
-    $base_uri = "https://{0}-admin.okta.com/api/" -f $domain
-  }
-  catch { 
-  }
-  try {
-    @"
+function _getConfigFile {
+  if (-not(Test-Path -Path ./Config.psd1)) {
+    try {
+      $ConfigFile = New-Item -ItemType File -Path ./Config.psd1
+    }
+    catch {
+      $_.Exception
+      Exit
+    }
+    try {
+      $domain = _getDomain
+      $base_uri = "'https://{0}-admin.okta.com/api/'" -f $domain
+    }
+    catch {
+      $_.Exception
+    }
+    try {
+      @"
     @{
       token_file = '.token'
       base_uri = $base_uri
     }
 "@ | Add-Content -Path $ConfigFile
 
-  }
-  catch {
-    
+    }
+    catch {
+      $_.Exception
+    }
   }
 }
+
+# Import Config
+$config = Import-PowerShellDataFile -Path ./Config.psd1
 
 if (-not (Test-Path -Path $config.token_file)) {
   Write-Warning -Verbose "Hold on, you don't have an API Token, standby";
@@ -44,10 +51,6 @@ if (-not (Test-Path -Path $config.token_file)) {
     Exit
   }
 }
-
-# Import Config
-$config = Import-PowerShellDataFile -Path ./Config.psd1
-
 
 function _getHeaders {
   try {
