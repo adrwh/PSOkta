@@ -38,7 +38,7 @@ Get all users starting with "bob" and return some useful objects
 * Public function names must be PowerShell compliant using the "Verb-Noun" format and start with an approved Verb (https://docs.microsoft.com/en-us/powershell/scripting/developer/cmdlet/approved-verbs-for-windows-powershell-commands?view=powershell-5.1)
 * Function name Nouns should be specific and auto-documenting, auto-describing the function activity.
 * Functions should do 1 thing, and do it well.
-* Private/Internal functions should be named with a "util" prefix, follwed by a word/s to describe the function, such as "utilConvertDate", "utilDoSomething"
+* Private/Internal functions should be named with an underscore prefix, follwed by a word/s to describe the function, such as "_ConvertDate", "_DoSomething"
 * Public functions must be advanced functions (https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_advanced_parameters?view=powershell-7.1)
 * Public functions must include at least a Synopsis, Description and one Example comment block, placed inside, at the very top of the function definition.
 

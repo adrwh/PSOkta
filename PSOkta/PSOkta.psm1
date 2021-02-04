@@ -11,7 +11,7 @@ function _getToken {
 
 if (-not (Test-Path -Path $config.token_file)) {
   Write-Warning -Verbose "Hold on, you don't have an API Token, standby";
-  getToken
+  _getToken
   if (-not (Test-Path -Path $config.token_file)) {
     Write-Warning -Verbose "Still no Token file, get help, bailing."
     Exit
