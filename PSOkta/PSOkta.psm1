@@ -38,23 +38,26 @@ $Global:headers = _getHeaders
 function Get-Okta {
   <#
  .Synopsis
-  Gets Okta Users
+  Get User, Groups or Apps data from Okta.
+
+  .Description
+  This "Magic" Okta function, breaks the rules with style, by allowing you to get User, Groups and Apps data from Okta, in a single command.
 
   .Example
   # Get a single user and return the user profile.
-  RequestOkta -Version "v1" -Endpoint "users" -Q "username@hillsong.com" 
+  Get-Okta -Version "v1" -Endpoint Users -Q "username@hillsong.com" 
 
  .Example
   # Get all users. Note: The -Version paramater defaults to "v1" and can be ommitted.
-  RequestOkta -Endpoint "users"
+  Get-Okta -Endpoint Users
 
  .Example
   # Get Okta ACTIVE users. 
-  RequestOkta -Endpoint "users" -Filter "status = 'ACTIVE'"
+  Get-Okta -Endpoint Users -Active
 
   .Example
-  # Get all users starting with "andrew" and return some useful objects
-  Get-Okta -Endpoint users -Q 'andrew' -Verbose | select id,status,@{n='name';e={$_.profile.login}},created,lastlogin  | ft
+  # Get all users starting with "bob" and return some useful objects
+  Get-Okta -Endpoint Users -Q 'bob' -Verbose | select id,status,@{n='name';e={$_.profile.login}},created,lastlogin  | ft
 
 #>
   [CmdletBinding()]
