@@ -27,12 +27,12 @@ function _getConfigFile {
     }
     try {
       @"
-    @{
-      token_file = '.token'
-      base_uri = $base_uri
-    }
+@{
+  token_file = '.token'
+  base_uri = $base_uri
+}
 "@ | Add-Content -Path $ConfigFile
-
+  
     }
     catch {
       $_.Exception
