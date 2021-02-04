@@ -3,7 +3,9 @@
 The PSOkta PowerShell module helps administrators manage Oktas Universal Directory, Single Sign-On, Authentication, Multi-factor Authentication.
 ## Get Started
 
-Prerequisites: Get git and your ssh key setup.
+Prerequisites: 
+* Get git
+* Get your Okta API Token handy
 
 1. `cd` into an appropriate directory on your computer to download this module.
 2. `git clone git@github.com:hillsong/PSOkta.git`
