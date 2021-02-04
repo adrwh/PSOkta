@@ -17,7 +17,22 @@ To take a peek at the module and functions use the commands below.
 1. `Get-Command Get-Okta`
 
 ## Examples
-`Get-Okta -Endpoint users -Q 'andrew' -Verbose | select id,status,@{n='name';e={$_.profile.login}},created,lastlogin  |ft`
+
+Get a single user and return the user profile.
+
+`Get-Okta -Version "v1" -Endpoint Users -Q "username@hillsong.com"`
+
+Get all users. Note: The -Version paramater defaults to "v1" and can be ommitted.
+
+`Get-Okta -Endpoint Users -All`
+
+Get Okta ACTIVE users. 
+
+`Get-Okta -Endpoint Users -Active`
+
+Get all users starting with "bob" and return some useful objects
+
+`Get-Okta -Endpoint Users -Q 'bob' -Verbose | select id,status,@{n='name';e={$_.profile.login}},created,lastlogin  | ft`
 
 ## Module Development Guidelines
 * Public function names must be PowerShell compliant using the "Verb-Noun" format and start with an approved Verb (https://docs.microsoft.com/en-us/powershell/scripting/developer/cmdlet/approved-verbs-for-windows-powershell-commands?view=powershell-5.1)
