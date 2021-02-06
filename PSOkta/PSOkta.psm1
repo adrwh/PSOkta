@@ -58,6 +58,7 @@ function Get-Okta {
         @{
           ParamName = "LastUpdated"
           ParamType = [String]
+          ParamValidateSet = "1d","3d","5d","7d","15d","30d","60d","90d"
         },
         @{
           ParamName = "Department"
@@ -83,11 +84,15 @@ function Get-Okta {
     }
 
     $RuntimeDefinedParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-    function AddDynamicParams ($ParamName, $ParamType) {
+    function AddDynamicParams ($ParamName, $ParamType, $ParamValidateSet) {
       $Collection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
       $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
       $ParameterAttribute.Mandatory = $false
+      if ($ParamValidateSet){
+        $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ParamValidateSet)
+      }
       $Collection.Add($ParameterAttribute)
+      $Collection.Add($ValidateSetAttribute)
       $RuntimeDefinedParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParamName, $ParamType, $Collection)
       $RuntimeDefinedParameterDictionary.Add($_.ParamName, $RuntimeDefinedParameter)
     }
@@ -124,6 +129,25 @@ function Get-Okta {
     if ($PSBoundParameters.Active) { $QueryString = '?filter=status eq "ACTIVE"' }
     if ($PSBoundParameters.Locked) { $QueryString = '?filter=status eq "LOCKED_OUT"' }
     if ($PSBoundParameters.PasswordExpired) { $QueryString = '?filter=status eq "PASSWORD_EXPIRED"' }
+    if ($PSBoundParameters.Department) { $QueryString = '?search=profile.department sw "{0}"' -f $PSBoundParameters.Department }
+    if ($PSBoundParameters.LastUpdated) {
+      switch ($PSBoundParameters.LastUpdated) {
+        "1d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-1).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        "3d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-3).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        "5d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-5).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        "7d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-7).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        "15d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-15).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        "30d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-30).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        "60d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-60).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        "90d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-90).ToString('yyyy-MM-ddT00:00:00.00Z') }
+        Default {}
+      }
+      
+      # $QueryString = '?filter=lastUpdated gt "{0}"' -f $PSBoundParameters.LastUpdated 
+    
+    }
+
+
 
     # API Resource Endpoint
     $uri = -join (($config.base_uri), ("/{0}/{1}{2}" -f $Version, $Endpoint.ToLower(), $QueryString)) #?filter=status eq "ACTIVE"'
@@ -140,8 +164,6 @@ function Get-Okta {
     }
   }  
   process {
-    # make the API request using -FollowRelLink for automatic paging
-
     # Unroll the pages
     $data = $response | Foreach-object { $_ }
 
