@@ -39,10 +39,11 @@ base_uri = $base_uri
 }
   
 if (-not(Test-Path -Path ./Config.psd1)) {
-  _getConfigFile
-  # Import Config
-  $config = Import-PowerShellDataFile -Path ./Config.psd1
+  _getConfigFile  
 }
+
+# Import Config
+$config = Import-PowerShellDataFile -Path ./Config.psd1
   
 if (-not (Test-Path -Path $config.token_file)) {
   _getToken
