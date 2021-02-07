@@ -38,87 +38,103 @@ function Get-Okta {
         @{
           ParamName = "Q"
           ParamType = [String]
+          ParamHelpMessage = "Enter an email address, first or last name to search for."
         },
         @{
           ParamName = "All"
           ParamType = [Switch]
+          ParamHelpMessage = "Will return all users."
         },
         @{
           ParamName = "Active"
           ParamType = [Switch]
+          ParamHelpMessage = "Will return active users."
         },
         @{
           ParamName = "Locked"
           ParamType = [Switch]
+          ParamHelpMessage = "Will return locked users."
         },
         @{
           ParamName = "PasswordExpired"
           ParamType = [Switch]
+          ParamHelpMessage = "Will return password expired users"
         },
         @{
           ParamName        = "LastUpdated"
-          ParamType        = [String]
-          ParamValidateSet = "1d", "3d", "5d", "7d", "15d", "30d", "60d", "90d"
+          ParamType        = [Int]
+          ParamValidateRange = "1", "90"
+          ParamHelpMessage = "Will search for users last updated {n} days ago"
         },
         @{
           ParamName = "Department"
           ParamType = [String]
+          ParamHelpMessage = "Enter the beginning characters or department name to search for."
         }
       )
       Groups = @(
         @{
           ParamName = "LastMembershipUpdated"
-          ParamType = [String]
-          ParamValidateSet = "1d", "3d", "5d", "7d", "15d", "30d", "60d", "90d"
+          ParamType = [Int]
+          ParamValidateRange = "1", "90"
+          ParamHelpMessage = "Will search for users last updated {n}d days ago"
         },
         @{
           ParamName = "Type"
           ParamType = [String]
           ParamValidateSet = "APP_GROUP", "BUILT_IN", "OKTA_GROUP"
+          ParamHelpMessage = "Enter a group type to search for."
         }
       )
       Apps   = @(
         @{
           ParamName = "Active"
           ParamType = [Switch]
+          ParamHelpMessage = "Will return active users."
         },
         @{
           ParamName = "InActive"
           ParamType = [Switch]
+          ParamHelpMessage = "Will return inactive users."
         }
       )
     }
 
     $RuntimeDefinedParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-    function AddDynamicParams ($ParamName, $ParamType, $ParamValidateSet) {
+    function AddDynamicParams ($ParamName, $ParamType, $ParamValidateSet, $ParamHelpMessage, $ParamValidateRange) {
       $Collection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
       $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
       $ParameterAttribute.Mandatory = $false
+      $ParameterAttribute.HelpMessage = $ParamHelpMessage
+      $Collection.Add($ParameterAttribute)
+      if ($ParamValidateRange) {
+        $ValidateRangeAttribute = New-Object System.Management.Automation.ValidateRangeAttribute($ParamValidateRange)
+        $Collection.Add($ValidateRangeAttribute)
+      }
       if ($ParamValidateSet) {
         $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($ParamValidateSet)
+        $Collection.Add($ValidateSetAttribute)
       }
-      $Collection.Add($ParameterAttribute)
-      $Collection.Add($ValidateSetAttribute)
       $RuntimeDefinedParameter = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter($ParamName, $ParamType, $Collection)
-      $RuntimeDefinedParameterDictionary.Add($_.ParamName, $RuntimeDefinedParameter)
+      $RuntimeDefinedParameterDictionary.Add($ParamName, $RuntimeDefinedParameter)
     }
 
     switch ($Endpoint) {
       'Users' { 
         $ParamOptions.Users.foreach{
-          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet
+          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange
         }
         Break
       }
       'Groups' { 
         $ParamOptions.Groups.foreach{
-          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet
+          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange
         }
         Break
       }
       'Apps' { 
         $ParamOptions.Apps.foreach{
-          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet
+          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamHelpMessage $_.ParamHelpMessage
         }
         Break
       }
@@ -139,51 +155,32 @@ function Get-Okta {
         if ($PSBoundParameters.PasswordExpired) { $QueryString = '?filter=status eq "PASSWORD_EXPIRED"' }
         if ($PSBoundParameters.Department) { $QueryString = '?search=profile.department sw "{0}"' -f $PSBoundParameters.Department }
         if ($PSBoundParameters.LastUpdated) {
-          switch ($PSBoundParameters.LastUpdated) {
-            "1d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-1).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "3d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-3).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "5d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-5).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "7d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-7).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "15d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-15).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "30d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-30).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "60d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-60).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "90d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-90).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            Default { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-1).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-          }
+          $Days = $PSBoundParameters.LastUpdated
+          $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-$Days).ToString('yyyy-MM-ddT00:00:00.00Z')
         }
       }
       'Groups' { 
         if ($PSBoundParameters.Type) { $QueryString = -join ('?filter=type eq "{0}"', $PSBoundParameters.Type) }
         if ($PSBoundParameters.LastMembershipUpdated) {
-          switch ($PSBoundParameters.LastMembershipUpdated) {
-            "1d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-1).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "3d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-3).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "5d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-5).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "7d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-7).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "15d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-15).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "30d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-30).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "60d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-60).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            "90d" { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-90).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-            Default { $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-1).ToString('yyyy-MM-ddT00:00:00.00Z') ; Break }
-          }
+          $Days = $PSBoundParameters.LastMembershipUpdated
+            $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-$Days).ToString('yyyy-MM-ddT00:00:00.00Z')
         }
       }
       'Apps' { 
         if ($PSBoundParameters.Active) { $QueryString = '?filter=status eq "ACTIVE"' }
         if ($PSBoundParameters.InActive) { $QueryString = '?filter=status eq "INACTIVE"' }
       }
-      Default {}
     }
   
   # API Resource Endpoint
-  $uri = -join (($config.base_uri), ("/{0}/{1}{2}" -f $Version, $Endpoint.ToLower(), $QueryString)) #?filter=status eq "ACTIVE"'
+  $uri = -join (($config.base_uri), ("/{0}/{1}{2}" -f $Version, $Endpoint.ToLower(), $QueryString))
   Write-Verbose "GET [$uri]"
 
   try {
     $response = Invoke-RestMethod -Headers $headers -Uri $uri -FollowRelLink -Verbose:$false
   }
   catch [Microsoft.PowerShell.Commands.HttpResponseException] {
-    Write-Output "HTTP Error"
+    Write-Error "HttpResponseException"
   }
   catch {
     $_
@@ -191,8 +188,6 @@ function Get-Okta {
 }  
 process {
   # Unroll the pages
-  $data = $response | Foreach-object { $_ }
-
-  return $data
+  $response | Foreach-object { $_ }
 }
 }

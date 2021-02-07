@@ -71,5 +71,16 @@ function _getHeaders {
 }
   
 $Global:headers = _getHeaders
-Write-Output "Ok, ready to rumble, start using the module.  Type this to get started 'Get-Command -Module PSOkta"
-Get-Command -Module PSOkta
+
+Clear-Host
+@'
+██████╗░░██████╗░█████╗░██╗░░██╗████████╗░█████╗░
+██╔══██╗██╔════╝██╔══██╗██║░██╔╝╚══██╔══╝██╔══██╗
+██████╔╝╚█████╗░██║░░██║█████═╝░░░░██║░░░███████║
+██╔═══╝░░╚═══██╗██║░░██║██╔═██╗░░░░██║░░░██╔══██║
+██║░░░░░██████╔╝╚█████╔╝██║░╚██╗░░░██║░░░██║░░██║
+╚═╝░░░░░╚═════╝░░╚════╝░╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝
+
+Making Okta easy..
+
+'@
