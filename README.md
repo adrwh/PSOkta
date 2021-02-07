@@ -1,5 +1,12 @@
 # PSOkta
 
+██████╗░░██████╗░█████╗░██╗░░██╗████████╗░█████╗░
+██╔══██╗██╔════╝██╔══██╗██║░██╔╝╚══██╔══╝██╔══██╗
+██████╔╝╚█████╗░██║░░██║█████═╝░░░░██║░░░███████║
+██╔═══╝░░╚═══██╗██║░░██║██╔═██╗░░░░██║░░░██╔══██║
+██║░░░░░██████╔╝╚█████╔╝██║░╚██╗░░░██║░░░██║░░██║
+╚═╝░░░░░╚═════╝░░╚════╝░╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝
+
 The PSOkta PowerShell module helps administrators manage Oktas Universal Directory, Single Sign-On, Authentication, Multi-factor Authentication.
 ## Get Started
 
