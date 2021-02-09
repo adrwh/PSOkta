@@ -26,7 +26,7 @@ function Get-Okta {
   [CmdletBinding()]
   Param (
     [Parameter()]
-    [String]$Version = "v1",
+    [String]$Version = $config.api_version,
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet("Users", "Groups", "Apps")]
     [String]$Endpoint
@@ -36,65 +36,65 @@ function Get-Okta {
     $ParamOptions = @{
       Users  = @(
         @{
-          ParamName = "Q"
-          ParamType = [String]
+          ParamName        = "Q"
+          ParamType        = [String]
           ParamHelpMessage = "Enter an email address, first or last name to search for."
         },
         @{
-          ParamName = "All"
-          ParamType = [Switch]
+          ParamName        = "All"
+          ParamType        = [Switch]
           ParamHelpMessage = "Will return all users."
         },
         @{
-          ParamName = "Active"
-          ParamType = [Switch]
+          ParamName        = "Active"
+          ParamType        = [Switch]
           ParamHelpMessage = "Will return active users."
         },
         @{
-          ParamName = "Locked"
-          ParamType = [Switch]
+          ParamName        = "Locked"
+          ParamType        = [Switch]
           ParamHelpMessage = "Will return locked users."
         },
         @{
-          ParamName = "PasswordExpired"
-          ParamType = [Switch]
+          ParamName        = "PasswordExpired"
+          ParamType        = [Switch]
           ParamHelpMessage = "Will return password expired users"
         },
         @{
-          ParamName        = "LastUpdated"
-          ParamType        = [Int]
+          ParamName          = "LastUpdated"
+          ParamType          = [Int]
           ParamValidateRange = "1", "90"
-          ParamHelpMessage = "Will search for users last updated {n} days ago"
+          ParamHelpMessage   = "Will search for users last updated {n} days ago"
         },
         @{
-          ParamName = "Department"
-          ParamType = [String]
+          ParamName        = "Department"
+          ParamType        = [String]
           ParamHelpMessage = "Enter the beginning characters or department name to search for."
         }
       )
       Groups = @(
         @{
-          ParamName = "LastMembershipUpdated"
-          ParamType = [Int]
+          ParamName          = "LastMembershipUpdated"
+          ParamType          = [Int]
           ParamValidateRange = "1", "90"
-          ParamHelpMessage = "Will search for users last updated {n}d days ago"
+          ParamHelpMessage   = "Will search for users last updated {n}d days ago"
         },
         @{
-          ParamName = "Type"
-          ParamType = [String]
+          ParamName        = "Type"
+          ParamType        = [String]
           ParamValidateSet = "APP_GROUP", "BUILT_IN", "OKTA_GROUP"
           ParamHelpMessage = "Enter a group type to search for."
         }
       )
       Apps   = @(
         @{
-          ParamName = "Active"
-          ParamType = [Switch]
+          ParamName        = "Active"
+          ParamType        = [Switch]
           ParamHelpMessage = "Will return active users."
         },
         @{
-          ParamName = "InActive"
-          ParamType = [Switch]
+          ParamName        = "InActive"
+          ParamType        = [Switch]
           ParamHelpMessage = "Will return inactive users."
         }
       )
@@ -163,7 +163,7 @@ function Get-Okta {
         if ($PSBoundParameters.Type) { $QueryString = -join ('?filter=type eq "{0}"', $PSBoundParameters.Type) }
         if ($PSBoundParameters.LastMembershipUpdated) {
           $Days = $PSBoundParameters.LastMembershipUpdated
-            $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-$Days).ToString('yyyy-MM-ddT00:00:00.00Z')
+          $QueryString = '?filter=lastUpdated gt "{0}"' -f (Get-Date).AddDays(-$Days).ToString('yyyy-MM-ddT00:00:00.00Z')
         }
       }
       'Apps' { 
@@ -172,22 +172,66 @@ function Get-Okta {
       }
     }
   
-  # API Resource Endpoint
-  $uri = -join (($config.base_uri), ("/{0}/{1}{2}" -f $Version, $Endpoint.ToLower(), $QueryString))
-  Write-Verbose "GET [$uri]"
+    # API Resource Endpoint
+    $uri = -join (($config.base_uri), ("/{0}/{1}{2}" -f $config.api_version, $Endpoint.ToLower(), $QueryString))
+    Write-Verbose "GET [$uri]"
+
+    try {
+      $response = Invoke-RestMethod -Headers $headers -Uri $uri -FollowRelLink -Verbose:$false
+    }
+    catch [Microsoft.PowerShell.Commands.HttpResponseException] {
+      Write-Error "HttpResponseException"
+    }
+    catch {
+      $_
+    }
+  }  
+  process {
+    # Unroll the pages
+    $response | Foreach-object { $_ }
+  }
+}
+
+function Unsuspend-OktaUser {
+  <#
+  .SYNOPSIS
+    POST /api/v1/users/${userId}/lifecycle/unsuspend
+  .DESCRIPTION
+    Unsuspends a user and returns them to the ACTIVE state
+    This operation can only be performed on users that have a SUSPENDED status.
+  .EXAMPLE
+    PS C:\> <example usage>
+    Explanation of what the example does
+  .INPUTS
+    Inputs (if any)
+  .OUTPUTS
+    Output (if any)
+  .NOTES
+    General notes
+  #>
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true, Position = 0)]
+    [String]$Id
+  )
 
   try {
-    $response = Invoke-RestMethod -Headers $headers -Uri $uri -FollowRelLink -Verbose:$false
+    # Build query
+    $Query = @{
+      Headers = $headers
+      Uri = -join (($config.base_uri), ("/{0}/users/{1}/lifecycle/unsuspend" -f $config.api_version, $Id))
+      Verbose = $false
+      Method = 'Post'
+    }
+    
+    Write-Verbose "REQUEST [$($Query.Uri)]"
+    $response = Invoke-RestMethod @Query
   }
   catch [Microsoft.PowerShell.Commands.HttpResponseException] {
-    Write-Error "HttpResponseException"
+    Write-Error $_.ErrorDetails.Message | ConvertFrom-Json | Out-String
   }
   catch {
     $_
   }
-}  
-process {
-  # Unroll the pages
-  $response | Foreach-object { $_ }
-}
+
 }
