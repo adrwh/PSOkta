@@ -15,12 +15,13 @@ function Get-Okta {
   Get-Okta -Endpoint Users
 
  .Example
-  # Get Okta ACTIVE users. 
-  Get-Okta -Endpoint Users -Active
+  # Get Okta ACTIVE users.
+  # Note: As long as you provide the Endpoint parameter values "Users, Groups or Apps" in parameter position 0, you can omit the "-Endpoint" paramter.
+  Get-Okta Users -Active
 
   .Example
   # Get all users starting with "bob" and return some useful objects
-  Get-Okta -Endpoint Users -Q 'bob' -Verbose | select id,status,@{n='name';e={$_.profile.login}},created,lastlogin  | ft
+  Get-Okta Users -Q 'bob' -Verbose | select id,status,@{n='name';e={$_.profile.login}},created,lastlogin  | ft
 
 #>
   [CmdletBinding()]
@@ -39,37 +40,44 @@ function Get-Okta {
           ParamName        = "Q"
           ParamType        = [String]
           ParamHelpMessage = "Enter an email address, first or last name to search for."
+          ParamSet = "Q"
         },
         @{
           ParamName        = "All"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return all users."
+          ParamSet = "All"
         },
         @{
           ParamName        = "Active"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return active users."
+          ParamSet = "Active"
         },
         @{
           ParamName        = "Locked"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return locked users."
+          ParamSet = "Locked"
         },
         @{
           ParamName        = "PasswordExpired"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return password expired users"
+          ParamSet = "PasswordExpired"
         },
         @{
           ParamName          = "LastUpdated"
           ParamType          = [Int]
           ParamValidateRange = "1", "90"
           ParamHelpMessage   = "Will search for users last updated {n} days ago"
+          ParamSet = "LastUpdated"
         },
         @{
           ParamName        = "Department"
           ParamType        = [String]
           ParamHelpMessage = "Enter the beginning characters or department name to search for."
+          ParamSet = "Department"
         }
       )
       Groups = @(
@@ -190,48 +198,4 @@ function Get-Okta {
     # Unroll the pages
     $response | Foreach-object { $_ }
   }
-}
-
-function Unsuspend-OktaUser {
-  <#
-  .SYNOPSIS
-    POST /api/v1/users/${userId}/lifecycle/unsuspend
-  .DESCRIPTION
-    Unsuspends a user and returns them to the ACTIVE state
-    This operation can only be performed on users that have a SUSPENDED status.
-  .EXAMPLE
-    PS C:\> <example usage>
-    Explanation of what the example does
-  .INPUTS
-    Inputs (if any)
-  .OUTPUTS
-    Output (if any)
-  .NOTES
-    General notes
-  #>
-  [CmdletBinding()]
-  param (
-    [Parameter(Mandatory = $true, Position = 0)]
-    [String]$Id
-  )
-
-  try {
-    # Build query
-    $Query = @{
-      Headers = $headers
-      Uri = -join (($config.base_uri), ("/{0}/users/{1}/lifecycle/unsuspend" -f $config.api_version, $Id))
-      Verbose = $false
-      Method = 'Post'
-    }
-    
-    Write-Verbose "REQUEST [$($Query.Uri)]"
-    $response = Invoke-RestMethod @Query
-  }
-  catch [Microsoft.PowerShell.Commands.HttpResponseException] {
-    Write-Error $_.ErrorDetails.Message | ConvertFrom-Json | Out-String
-  }
-  catch {
-    $_
-  }
-
 }
