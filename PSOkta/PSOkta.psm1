@@ -181,11 +181,11 @@ function Get-Okta {
     }
   
     # API Resource Endpoint
-    $uri = -join (($config.base_uri), ("/{0}/{1}{2}" -f $config.api_version, $Endpoint.ToLower(), $QueryString))
+    $uri = -join (($OktaDomain), ("/{0}/{1}{2}" -f $config.api_version, $Endpoint.ToLower(), $QueryString))
     Write-Verbose "GET [$uri]"
 
     try {
-      $response = Invoke-RestMethod -Headers $headers -Uri $uri -FollowRelLink -Verbose:$false
+      $response = Invoke-RestMethod -Headers $APIHeaders -Uri $uri -FollowRelLink -Verbose:$false
     }
     catch [Microsoft.PowerShell.Commands.HttpResponseException] {
       Write-Error "HttpResponseException"

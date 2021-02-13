@@ -24,13 +24,13 @@ GUID = '65eeb365-5b23-406f-8717-36f44adf07d7'
 Author = 'Andrew Huddleston'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+# CompanyName = 'Unknown'
 
 # Copyright statement for this module
 Copyright = '(c) Andrew Huddleston. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'PSOkta PowerShell module helps administrators manage Okta''s Universal Directory, Single Sign-On, Authentication, Multi-factor Authentication'
 
 # Minimum version of the PowerShell engine required by this module
 PowerShellVersion = '7.0'
@@ -57,7 +57,7 @@ PowerShellVersion = '7.0'
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-ScriptsToProcess = @("setup.ps1")
+ScriptsToProcess = @("Setup.ps1")
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('Okta','IAM','Identity')
 
         # A URL to the license for this module.
         # LicenseUri = ''
