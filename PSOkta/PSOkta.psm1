@@ -181,7 +181,7 @@ function Get-Okta {
     }
   
     # API Resource Endpoint
-    $uri = -join (($OktaDomain), ("/{0}/{1}{2}" -f $config.api_version, $Endpoint.ToLower(), $QueryString))
+    $uri = -join (($OktaDomain), ("/{0}/{1}{2}" -f $APIVersion, $Endpoint.ToLower(), $QueryString))
     Write-Verbose "GET [$uri]"
 
     try {
@@ -198,4 +198,24 @@ function Get-Okta {
     # Unroll the pages
     $response | Foreach-object { $_ }
   }
+}
+function Update-PSOktaAPIToken {
+  function _getAPIToken {
+    return Read-Host -AsSecureString -Prompt "Please provide your Okta API Token"
+  }
+  function _getAPIHeaders {
+    try {
+      $APIToken = (_getAPIToken | ConvertFrom-SecureString -AsPlainText)
+    }
+    catch {    
+    }
+
+    return @{
+      Authorization  = "SSWS {0}" -f $APIToken
+      Accept         = "application/json"
+      "Content-Type" = "application/json"
+    }
+  }
+  
+  $Global:APIHeaders = _getAPIHeaders
 }

@@ -12,8 +12,7 @@ function _getAPIHeaders {
   try {
     $APIToken = (_getAPIToken | ConvertFrom-SecureString -AsPlainText)
   }
-  catch {
-      
+  catch {    
   }
   # Setup Auth Header
   return @{
@@ -25,6 +24,7 @@ function _getAPIHeaders {
 
 $Global:OktaDomain = _getOktaDomain
 $Global:APIHeaders = _getAPIHeaders
+$Global:APIVersion = "v1"
 
 Clear-Host
 @'
