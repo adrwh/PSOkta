@@ -9,9 +9,10 @@ function Connect-PSOkta () {
   $Domain = Read-Host -Prompt "Please provide your Okta Domain" 
   $Script:PSOktaApiDomain = "https://{0}-admin.okta.com/api/{1}" -f $Domain, $PSOktaApiVersion
 
-  if (Test-Path -Path (-join($HOME,'/.PSOktaToken'))) {
-    $Token = Import-Clixml -Path (-join($HOME,'/.PSOktaToken')) | ConvertFrom-SecureString -AsPlainText
-  } else {
+  if (Test-Path -Path ( -join ($HOME, '/.PSOktaToken'))) {
+    $Token = Import-Clixml -Path ( -join ($HOME, '/.PSOktaToken')) | ConvertFrom-SecureString -AsPlainText
+  }
+  else {
     $Token = Read-Host -AsSecureString -Prompt "Please provide your Okta API Token"
   }  
 
@@ -64,6 +65,12 @@ function Get-Okta {
           ParamName        = "Q"
           ParamType        = [String]
           ParamHelpMessage = "Enter an email address, first or last name to search for."
+          ParamSet         = "Q"
+        },
+        @{
+          ParamName        = "Simple"
+          ParamType        = [Switch]
+          ParamHelpMessage = "Returns a simple subset of results"
           ParamSet         = "Q"
         },
         @{
@@ -214,12 +221,15 @@ function Get-Okta {
     }
   
     $ApiParams = @{
-      Uri = -join (($PSOktaApiDomain), ("/{0}{1}" -f $Endpoint.ToLower(), $QueryString))
-      Method = "Get"
+      Uri          = -join (($PSOktaApiDomain), ("/{0}{1}" -f $Endpoint.ToLower(), $QueryString))
+      Method       = "Get"
       FollowReLink = $true
-      Verbose = $ScriptVerbose
+      Verbose      = $ScriptVerbose
     }
 
+    
+  }  
+  process {
     try {
       $r = Invoke-OktaApi @ApiParams
     }
@@ -230,10 +240,26 @@ function Get-Okta {
       Write-Output ""
       Write-Error $_.ErrorDetails.Message | ConvertFrom-Json | Out-String
     }
-  }  
-  process {
-    # Unroll the pages
-    $r.foreach{ $_ }
+
+    if ($PSBoundParameters.Simple) {
+      $r.foreach{ 
+        [pscustomobject]@{
+          Id          = $_.id
+          Status      = $_.status
+          Created     = $_.created
+          Lastlogin   = $_.lastLogin
+          DisplayName = $_.profile.displayName
+          Email       = $_.profile.login
+          Title       = $_.profile.title
+          Department  = $_.profile.department
+        }
+      }
+      
+    }
+    else {
+      # Unroll the pages
+      $r.foreach{ $_ }
+    }
   }
 }
 
@@ -299,10 +325,9 @@ function Set-Okta {
   process {
 
     Switch ($PSBoundParameters.Keys) {
-      { "Activate", "Reactivate", "Deactivate", "Suspend", "Unsuspend" -contains $_ }
-      {
+      { "Activate", "Reactivate", "Deactivate", "Suspend", "Unsuspend" -contains $_ } {
         $ParamBuilder = @{
-          Uri    = -join(($PSOktaApiDomain), ("/users/{0}/lifecycle/{1}" -f $PSBoundParameters.Id, $_.toLower()))
+          Uri    = -join (($PSOktaApiDomain), ("/users/{0}/lifecycle/{1}" -f $PSBoundParameters.Id, $_.toLower()))
           Method = 'Post'
         }
         Break;
@@ -310,8 +335,8 @@ function Set-Okta {
     }
 
     $ApiParams = @{
-      Uri     = $ParamBuilder.Uri
-      Method  = $ParamBuilder.Method
+      Uri    = $ParamBuilder.Uri
+      Method = $ParamBuilder.Method
     }
 
     Invoke-OktaApi @ApiParams
