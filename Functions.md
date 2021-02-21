@@ -13,6 +13,7 @@ Get-OktaUser
 - Locked
 - PasswordExpired
 - Department
+- Filter
 
 Set-OktaUser
 - Activate
