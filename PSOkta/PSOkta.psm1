@@ -1,3 +1,27 @@
+# Setup "module scope" variables, credit to Joel Bennett @jaykul and Mike Robbins @mikerobbins
+$Script:PSOktaApiDomain = ''
+$Script:PSOktaApiHeaders = ''
+$Script:PSOktaApiVersion = 'v1'
+$Script:PSOktaVerbose = $true
+
+function Connect-PSOkta () {
+
+  $Domain = Read-Host -Prompt "Please provide your Okta Domain" 
+  $Script:PSOktaApiDomain = "https://{0}-admin.okta.com/api/{1}" -f $Domain, $PSOktaApiVersion
+
+  if (Test-Path -Path (-join($HOME,'/.PSOktaToken'))) {
+    $Token = Import-Clixml -Path (-join($HOME,'/.PSOktaToken')) | ConvertFrom-SecureString -AsPlainText
+  } else {
+    $Token = Read-Host -AsSecureString -Prompt "Please provide your Okta API Token"
+  }  
+
+  $Script:PSOktaApiHeaders = @{
+    Authorization  = "SSWS {0}" -f $Token
+    Accept         = "application/json"
+    "Content-Type" = "application/json"
+  }
+}
+
 function Get-Okta {
   <#
  .Synopsis
@@ -27,7 +51,7 @@ function Get-Okta {
   [CmdletBinding()]
   Param (
     [Parameter()]
-    [String]$Version = $config.api_version,
+    [String]$Version = $PSOktaApiVersion,
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet("Users", "Groups", "Apps")]
     [String]$Endpoint
@@ -40,44 +64,44 @@ function Get-Okta {
           ParamName        = "Q"
           ParamType        = [String]
           ParamHelpMessage = "Enter an email address, first or last name to search for."
-          ParamSet = "Q"
+          ParamSet         = "Q"
         },
         @{
           ParamName        = "All"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return all users."
-          ParamSet = "All"
+          ParamSet         = "All"
         },
         @{
           ParamName        = "Active"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return active users."
-          ParamSet = "Active"
+          ParamSet         = "Active"
         },
         @{
           ParamName        = "Locked"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return locked users."
-          ParamSet = "Locked"
+          ParamSet         = "Locked"
         },
         @{
           ParamName        = "PasswordExpired"
           ParamType        = [Switch]
           ParamHelpMessage = "Will return password expired users"
-          ParamSet = "PasswordExpired"
+          ParamSet         = "PasswordExpired"
         },
         @{
           ParamName          = "LastUpdated"
           ParamType          = [Int]
           ParamValidateRange = "1", "90"
           ParamHelpMessage   = "Will search for users last updated {n} days ago"
-          ParamSet = "LastUpdated"
+          ParamSet           = "LastUpdated"
         },
         @{
           ParamName        = "Department"
           ParamType        = [String]
           ParamHelpMessage = "Enter the beginning characters or department name to search for."
-          ParamSet = "Department"
+          ParamSet         = "Department"
         }
       )
       Groups = @(
@@ -109,11 +133,14 @@ function Get-Okta {
     }
 
     $RuntimeDefinedParameterDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
-    function AddDynamicParams ($ParamName, $ParamType, $ParamValidateSet, $ParamHelpMessage, $ParamValidateRange) {
+    function AddDynamicParams ($ParamName, $ParamType, $ParamValidateSet, $ParamHelpMessage, $ParamValidateRange, $ParamSet) {
       $Collection = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
       $ParameterAttribute = New-Object System.Management.Automation.ParameterAttribute
       $ParameterAttribute.Mandatory = $false
       $ParameterAttribute.HelpMessage = $ParamHelpMessage
+      if ($ParamSet) {
+        $ParameterAttribute.ParameterSetName = $ParamSet
+      }
       $Collection.Add($ParameterAttribute)
       if ($ParamValidateRange) {
         $ValidateRangeAttribute = New-Object System.Management.Automation.ValidateRangeAttribute($ParamValidateRange)
@@ -130,10 +157,16 @@ function Get-Okta {
     switch ($Endpoint) {
       'Users' { 
         $ParamOptions.Users.foreach{
-          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange
+          AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange -ParamSet $_.ParamSet
         }
         Break
       }
+      # Users' { 
+      #   $ParamOptions.Users.foreach{
+      #     AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange
+      #   }
+      #   Break
+      # }
       'Groups' { 
         $ParamOptions.Groups.foreach{
           AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange
@@ -180,42 +213,107 @@ function Get-Okta {
       }
     }
   
-    # API Resource Endpoint
-    $uri = -join (($OktaDomain), ("/{0}/{1}{2}" -f $APIVersion, $Endpoint.ToLower(), $QueryString))
-    Write-Verbose "GET [$uri]"
+    $ApiParams = @{
+      Uri = -join (($PSOktaApiDomain), ("/{0}{1}" -f $Endpoint.ToLower(), $QueryString))
+      Method = "Get"
+      FollowReLink = $true
+      Verbose = $ScriptVerbose
+    }
 
     try {
-      $response = Invoke-RestMethod -Headers $APIHeaders -Uri $uri -FollowRelLink -Verbose:$false
+      $r = Invoke-OktaApi @ApiParams
     }
     catch [Microsoft.PowerShell.Commands.HttpResponseException] {
       Write-Error "HttpResponseException"
     }
     catch {
-      $_
+      Write-Output ""
+      Write-Error $_.ErrorDetails.Message | ConvertFrom-Json | Out-String
     }
   }  
   process {
     # Unroll the pages
-    $response | Foreach-object { $_ }
+    $r.foreach{ $_ }
   }
 }
-function Update-PSOktaAPIToken {
-  function _getAPIToken {
-    return Read-Host -AsSecureString -Prompt "Please provide your Okta API Token"
-  }
-  function _getAPIHeaders {
-    try {
-      $APIToken = (_getAPIToken | ConvertFrom-SecureString -AsPlainText)
-    }
-    catch {    
-    }
 
-    return @{
-      Authorization  = "SSWS {0}" -f $APIToken
-      Accept         = "application/json"
-      "Content-Type" = "application/json"
+function Invoke-OktaApi {
+  [CmdletBinding()]
+  param (
+    # Uri
+    [Parameter()]
+    [String]$Uri,
+    # Method
+    [Parameter()]
+    [string]$Method,
+    # FollowReLink
+    [Parameter()]
+    [Switch]$FollowReLink
+  )
+  
+  begin {
+
+    $ApiParams = @{
+      Uri           = $Uri
+      Method        = $Method
+      Headers       = $PSOktaApiHeaders
+      FollowRelLink = if ($PSBoundParameters.FollowReLink) { $true } else { $false }
+      # Verbose       = $true
+    }
+    
+  }
+  
+  process {
+    try {
+      $r = Invoke-RestMethod @ApiParams 
+      return $r
+    }
+    catch {
+      Write-Error $_.ErrorDetails.Message | ConvertFrom-Json | Out-String
     }
   }
   
-  $Global:APIHeaders = _getAPIHeaders
+  end {
+    
+  }
+}
+
+function Set-Okta {
+  [CmdletBinding()]
+  param (
+    # Parameter help description
+    [Parameter(ValueFromPipelineByPropertyName = $true, Mandatory = $true)]
+    [String]$Id,
+    [Parameter()]
+    [Switch]$Activate,
+    [Parameter()]
+    [Switch]$Reactivate,
+    [Parameter()]
+    [Switch]$Deactivate,
+    [Parameter()]
+    [Switch]$Suspend,
+    [Parameter()]
+    [Switch]$Unsuspend
+  )
+  
+  process {
+
+    Switch ($PSBoundParameters.Keys) {
+      { "Activate", "Reactivate", "Deactivate", "Suspend", "Unsuspend" -contains $_ }
+      {
+        $ParamBuilder = @{
+          Uri    = -join(($PSOktaApiDomain), ("/users/{0}/lifecycle/{1}" -f $PSBoundParameters.Id, $_.toLower()))
+          Method = 'Post'
+        }
+        Break;
+      }
+    }
+
+    $ApiParams = @{
+      Uri     = $ParamBuilder.Uri
+      Method  = $ParamBuilder.Method
+    }
+
+    Invoke-OktaApi @ApiParams
+  }
 }

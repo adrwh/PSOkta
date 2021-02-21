@@ -59,17 +59,11 @@ PowerShellVersion = '7.0'
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 ScriptsToProcess = @("Setup.ps1")
 
-# Type files (.ps1xml) to be loaded when importing this module
-# TypesToProcess = @()
-
-# Format files (.ps1xml) to be loaded when importing this module
-# FormatsToProcess = @()
-
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Get-Okta','Update-PSOktaAPIToken')
+FunctionsToExport = @('Get-Okta','Connect-PSOkta','Set-Okta')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -80,14 +74,11 @@ VariablesToExport = '*'
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
 AliasesToExport = '*'
 
-# DSC resources to export from this module
-# DscResourcesToExport = @()
-
 # List of all modules packaged with this module
 # ModuleList = @()
 
 # List of all files packaged with this module
-# FileList = @()
+FileList = @('PSOkta.psm1','PSOkta.psd1','Setup.ps1')
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -109,24 +100,9 @@ PrivateData = @{
         # ReleaseNotes of this module
         # ReleaseNotes = ''
 
-        # Prerelease string of this module
-        # Prerelease = ''
-
-        # Flag to indicate whether the module requires explicit user acceptance for install/update/save
-        # RequireLicenseAcceptance = $false
-
-        # External dependent modules of this module
-        # ExternalModuleDependencies = @()
-
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable
-
-# HelpInfo URI of this module
-# HelpInfoURI = ''
-
-# Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
-# DefaultCommandPrefix = ''
 
 }
 
