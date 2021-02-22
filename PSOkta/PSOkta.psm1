@@ -3,6 +3,7 @@ $Script:PSOktaApiDomain = ''
 $Script:PSOktaApiHeaders = ''
 $Script:PSOktaApiVersion = 'v1'
 $Script:PSOktaVerbose = $true
+$VerbosePreference = "Continue"
 
 function Connect-PSOkta () {
 
@@ -13,7 +14,7 @@ function Connect-PSOkta () {
     $Token = Import-Clixml -Path ( -join ($HOME, '/.PSOktaToken')) | ConvertFrom-SecureString -AsPlainText
   }
   else {
-    $Token = Read-Host -AsSecureString -Prompt "Please provide your Okta API Token"
+    $Token = Read-Host -AsSecureString -Prompt "Please provide your Okta API Token" | ConvertFrom-SecureString -AsPlainText
   }  
 
   $Script:PSOktaApiHeaders = @{
@@ -168,12 +169,6 @@ function Get-Okta {
         }
         Break
       }
-      # Users' { 
-      #   $ParamOptions.Users.foreach{
-      #     AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange
-      #   }
-      #   Break
-      # }
       'Groups' { 
         $ParamOptions.Groups.foreach{
           AddDynamicParams -ParamName $_.ParamName -ParamType $_.ParamType -ParamValidateSet $_.ParamValidateSet -ParamHelpMessage $_.ParamHelpMessage -ParamValidateRange $_.ParamValidateRange
@@ -224,7 +219,6 @@ function Get-Okta {
       Uri          = -join (($PSOktaApiDomain), ("/{0}{1}" -f $Endpoint.ToLower(), $QueryString))
       Method       = "Get"
       FollowReLink = $true
-      Verbose      = $ScriptVerbose
     }
 
     
@@ -237,7 +231,6 @@ function Get-Okta {
       Write-Error "HttpResponseException"
     }
     catch {
-      Write-Output ""
       Write-Error $_.ErrorDetails.Message | ConvertFrom-Json | Out-String
     }
 
@@ -284,7 +277,7 @@ function Invoke-OktaApi {
       Method        = $Method
       Headers       = $PSOktaApiHeaders
       FollowRelLink = if ($PSBoundParameters.FollowReLink) { $true } else { $false }
-      # Verbose       = $true
+      Verbose       = $true
     }
     
   }
