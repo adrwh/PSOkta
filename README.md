@@ -1,20 +1,41 @@
 # PSOkta
 
 ```
- ██████╗░░██████╗░█████╗░██╗░░██╗████████╗░█████╗░
- ██╔══██╗██╔════╝██╔══██╗██║░██╔╝╚══██╔══╝██╔══██╗
- ██████╔╝╚█████╗░██║░░██║█████═╝░░░░██║░░░███████║
- ██╔═══╝░░╚═══██╗██║░░██║██╔═██╗░░░░██║░░░██╔══██║
- ██║░░░░░██████╔╝╚█████╔╝██║░╚██╗░░░██║░░░██║░░██║
- ╚═╝░░░░░╚═════╝░░╚════╝░╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝
 
- Making Okta easy..
+  ██████╗ ███████╗ ██████╗ ██╗  ██╗████████╗ █████╗ 
+  ██╔══██╗██╔════╝██╔═══██╗██║ ██╔╝╚══██╔══╝██╔══██╗
+  ██████╔╝███████╗██║   ██║█████╔╝    ██║   ███████║
+  ██╔═══╝ ╚════██║██║   ██║██╔═██╗    ██║   ██╔══██║
+  ██║     ███████║╚██████╔╝██║  ██╗   ██║   ██║  ██║
+  ╚═╝     ╚══════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+
+  Making Okta easy..
 
 ```
 
 The PSOkta PowerShell module helps administrators manage Oktas Universal Directory, Single Sign-On, Authentication, Multi-factor Authentication.
 
+## Module Description
+
+The module mainly follows the Okta API schema, using the same names, labels, paths and paradigms.  For example, to do a quick search for a user or users in the API, you parse a "q" query string, likewise in the module, you pass the "q" parameter.
+
+The module makes heavy use of "Dynamic Parameters" in attempt to minimise function count.  Some might say that breaks "coding zen", i get it, but im developing this for ease of use over tradition.
+
+The module is written for pipeline use, ie. it outputs objects, you get stuff, then pipe it to other PSOkta functions or other native PowerShell functions.  The idea is to maintain a strong pipeline design.
+
 ## Get Started
+
+Installation has 2 options.
+
+Option 1. 
+
+From the PowerShell Gallery.  Use this for no fuss, you just wanna try it out.
+    https://www.powershellgallery.com/packages/PSOkta/0.0.5
+
+Option 2.
+
+From GitHub. Use this if you want to contribute or want the last updates/fixes.
+    [https://github.com/adrwh/PSOkta]
 
 Prerequisites: 
 * Get git
@@ -30,6 +51,7 @@ Now you have the module in your powershell session and you can use the module an
 To take a peek at the module and functions use the commands below.
 1. `Get-Command -Module PSOkta`
 1. `Get-Command Get-Okta`
+
 
 ## Examples
 
@@ -51,12 +73,18 @@ Get all users starting with "bob" and return some useful objects
 
 `Get-Okta Users -Q 'bob' -Verbose | select id,status,@{n='name';e={$_.profile.login}},created,lastlogin  | ft`
 
+
 ## Functions
 
-For a full list of [Functions](Functions.md) being developed
+For a full list of [Functions](Functions.md) being developed, and there will be plenty more coming.
+
 
 ## Contribute
-This module is developed and maintained by the Information Security team, contributors welcome.
+This module is developed and maintained by @adrhw, contributors welcome.
 
 If you would like to contribute, get in touch.
+
+## License
+
+[MIT](LLicense.txt)
 
