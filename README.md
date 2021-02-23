@@ -96,5 +96,5 @@ If you would like to contribute, get in touch.
 
 ## License
 
-[MIT](LLicense.txt)
+[MIT](License.txt)
 
