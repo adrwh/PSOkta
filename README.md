@@ -23,6 +23,13 @@ The module makes heavy use of "Dynamic Parameters" in attempt to minimise functi
 
 The module is written for pipeline use, ie. it outputs objects, you get stuff, then pipe it to other PSOkta functions or other native PowerShell functions.  The idea is to maintain a strong pipeline design.
 
+## Authentication
+
+PSOkta needs your Okta domain and Okta API Token to operate. When you run `Connect-PSOkta`, you will be asked for your Okta domain and your token.  The Token will be handled as a `Secure-String` each time you connect.
+
+> ProTip: Save and export your token as a secure string.  This will prevent you from copy-pasting your token in each time you connect. You can use this command to get it done.
+`Read-Host -AsSecureString -Prompt "Please provide your Okta API Token" | ConvertTo-SecureString | Export-CliXml $HOME/.PSOktaToken`
+
 ## Get Started
 
 Installation has 2 options.
@@ -30,12 +37,13 @@ Installation has 2 options.
 Option 1. 
 
 From the PowerShell Gallery.  Use this for no fuss, you just wanna try it out.
-    https://www.powershellgallery.com/packages/PSOkta/0.0.5
+    https://www.powershellgallery.com/packages/PSOkta/0.0.5.  This option will not necessarily be the latest code.
 
 Option 2.
 
-From GitHub. Use this if you want to contribute or want the last updates/fixes.
+From GitHub. Use this if your familiar with GitHub, want to contribute or want the last updates/fixes.
     [https://github.com/adrwh/PSOkta]
+
 
 Prerequisites: 
 * Get git
@@ -45,6 +53,8 @@ Prerequisites:
 2. `git clone git@github.com:hillsong/PSOkta.git`
 3. `cd ./PSOkta/`
 4. `Import-Module ./PSOkta`
+5. `Connect-PSOkta`
+> Don't forget to connect, before trying to run commands.
 
 Now you have the module in your powershell session and you can use the module and its functions like any other PowerShell module.
 
